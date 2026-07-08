@@ -61,13 +61,13 @@ a { color: inherit; }
   height: 100%;
   animation: drift 18s linear infinite;
 }
-.wave-back { animation-duration: 26s; opacity: 0.55; }
-.wave-mid { animation-duration: 19s; opacity: 0.8; animation-direction: reverse; }
-.wave-front { animation-duration: 13s; opacity: 1; }
+.wave-back { animation-duration: 30s; opacity: 0.55; }
+.wave-mid { animation-duration: 20s; opacity: 0.8; }
+.wave-front { animation-duration: 12s; opacity: 1; }
 
 @keyframes drift {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+  from { transform: translateX(-50%); }
+  to { transform: translateX(0); }
 }
 
 .boat {
