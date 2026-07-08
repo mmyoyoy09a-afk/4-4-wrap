@@ -61,9 +61,9 @@ a { color: inherit; }
   height: 100%;
   animation: drift 18s linear infinite;
 }
-.wave-back { animation-duration: 30s; opacity: 0.55; }
-.wave-mid { animation-duration: 20s; opacity: 0.8; }
-.wave-front { animation-duration: 12s; opacity: 1; }
+.wave-back { animation-duration: 34s; opacity: 0.55; }
+.wave-mid { animation-duration: 18s; opacity: 0.8; }
+.wave-front { animation-duration: 9s; opacity: 1; }
 
 @keyframes drift {
   from { transform: translateX(-50%); }
@@ -85,8 +85,8 @@ a { color: inherit; }
   50% { transform: translateY(-6px) rotate(3deg); }
 }
 @keyframes sail {
-  from { left: -8%; }
-  to { left: 108%; }
+  from { left: 108%; }
+  to { left: -8%; }
 }
 
 @media (prefers-reduced-motion: reduce) {
