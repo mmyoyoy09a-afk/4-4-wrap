@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Admin &middot; BS ECE 4-4 Wrap{% endblock %}
+{% block content %}
+  <div class="site-header">
+    <div class="top-bar">
+      <div>
+        <p class="eyebrow">Admin</p>
+        <h1>Board control</h1>
+      </div>
+      <a class="btn small" href="{{ url_for('admin_logout') }}">Log out</a>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Add a name</h2>
+    <form method="post" action="{{ url_for('add_person') }}">
+      <label for="name">Full name</label>
+      <input type="text" id="name" name="name" required maxlength="100" placeholder="Juan Dela Cruz">
+      <button type="submit">Add to board</button>
+    </form>
+  </div>
+
+  <p class="section-title">Names on the board ({{ people|length }})</p>
+  <div class="panel">
+    {% if people %}
+      {% for p in people %}
+        <div class="admin-row">
+          <div>
+            <div class="name">{{ p['name'] }}</div>
+            <div class="meta">{{ p['msg_count'] }} messages &middot; /p/{{ p['slug'] }}</div>
+          </div>
+          <form class="inline-form" method="post" action="{{ url_for('delete_person', person_id=p['id']) }}" onsubmit="return confirm('Remove {{ p['name'] }} and all their messages?');">
+            <button type="submit" class="btn danger small">Remove</button>
+          </form>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p class="meta">No names yet.</p>
+    {% endif %}
+  </div>
+
+  <p class="section-title">Recent messages</p>
+  <div class="feed">
+    {% for m in recent_messages %}
+      <div class="msg">
+        <div class="msg-meta">
+          <span>
+            <span class="from">{{ m['sender_name'] if m['sender_name'] else 'Anonymous' }}</span>
+            &rarr; <a href="{{ url_for('person', slug=m['person_slug']) }}">{{ m['person_name'] }}</a>
+          </span>
+          <span>{{ m['created_at'][:16].replace('T', ' ') }}</span>
+        </div>
+        <p>{{ m['content'] }}</p>
+        <form method="post" action="{{ url_for('delete_message', message_id=m['id']) }}" onsubmit="return confirm('Delete this message?');">
+          <button type="submit" class="btn danger small">Delete</button>
+        </form>
+      </div>
+    {% else %}
+      <div class="empty">No messages yet.</div>
+    {% endfor %}
+  </div>
+{% endblock %}
