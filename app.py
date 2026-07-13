@@ -1,9 +1,9 @@
 import os
 import re
 import sqlite3
-from datetime import datetime, timezone  # Combined and streamlined
+from datetime import datetime, timezone
 from functools import wraps
-
+import pytz  # Handles target timezone offsets perfectly
 from flask import Flask, render_template, request, redirect, url_for, session, g, abort, flash
 
 app = Flask(__name__)
@@ -15,19 +15,13 @@ ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "changeme")
 # Hardcoded reveal date: August 1, 2026, at 00:00:00 PHT (UTC+8)
 REVEAL_AT_RAW = "2026-08-01T00:00:00+08:00"
 
-# ---------- Validation block with fixed indentation ----------
+# ---------- Validation block ----------
 try:
-    # 1. Parse the string into a datetime object
     parsed_date = datetime.fromisoformat(REVEAL_AT_RAW)
-    
-    # 2. Convert to UTC to verify the math
     utc_date = parsed_date.astimezone(timezone.utc)
-    
-    # 3. Check against the current system time
     now_with_tz = datetime.now(timezone.utc)
     is_past = now_with_tz >= utc_date
 
-    # Print validation results to your VS Code terminal
     print("--- Timezone Parser Test ---")
     print(f"Parsed Local Time: {parsed_date}")
     print(f"Timezone Offset:   {parsed_date.tzinfo}")
@@ -49,6 +43,29 @@ def get_reveal_dt():
         return dt
     except ValueError:
         return None
+
+def is_revealed():
+    """Checks if the current UTC time has passed the target reveal UTC time."""
+    target_dt = get_reveal_dt()
+    if not target_dt:
+        return False
+    
+    # Compare both values securely in UTC space
+    now_utc = datetime.now(timezone.utc)
+    target_utc = target_dt.astimezone(timezone.utc)
+    return now_utc >= target_utc
+
+def get_reveal_display():
+    """Returns status text showing when messages unlock or if they are open."""
+    target_dt = get_reveal_dt()
+    if not target_dt:
+        return "No reveal date set."
+        
+    if is_revealed():
+        return "Messages have been officially unlocked!"
+        
+    return f"Messages will unlock on: {target_dt.strftime('%B %d, %Y %I:%M %p %Z')}"
+
 
 
 # ---------- card export (.docx) helpers ----------
