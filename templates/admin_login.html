@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Admin login{% endblock %}
+{% block content %}
+  <div class="site-header">
+    <p class="eyebrow">Admin</p>
+    <h1>Log in</h1>
+  </div>
+  <div class="panel" style="max-width:360px;">
+    <form method="post">
+      <input type="hidden" name="next" value="{{ next }}">
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" autofocus>
+      <button type="submit">Log in</button>
+    </form>
+  </div>
+{% endblock %}

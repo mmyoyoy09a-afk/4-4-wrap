@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}BS ECE 4-4 Wrap{% endblock %}
+{% block content %}
+  <div class="site-header">
+    <p class="eyebrow">BS ECE &middot; Block 4-4 &middot; Year-End Wrap</p>
+    <h1>Cards from the crew 🌊</h1>
+    <p>Every card someone's sent, all in one place. Write your own and it'll wash up here too.</p>
+    <p style="margin-top:14px;"><a class="btn small" href="{{ url_for('card_new') }}">🎨 Design a card</a></p>
+  </div>
+
+  {% if any_hidden %}
+    <div class="lock-banner">🔒 {% if reveal_display %}Cards unlock on {{ reveal_display }}{% else %}Some cards are waiting for the year-end party reveal{% endif %}</div>
+  {% endif %}
+
+  {% if cards %}
+    <div class="wall-grid">
+      {% for c in cards %}
+        {% set has_more = c['revealed'] and c['total_pages'] > 1 %}
+        <div class="card-preview{% if has_more %} has-more{% endif %}" style="background:{{ c['color'] }};"
+          {% if has_more %}
+          onclick='openCardModal({{ c["to_name"]|tojson }}, {{ c["from_name"]|tojson }}, {{ c["color"]|tojson }}, {{ c["pages"]|tojson }})'
+          {% endif %}>
+          <div class="card-page-indicator">({{ '1/' ~ c['total_pages'] }})</div>
+          {% if c['to_name'] %}<div class="card-to"><span>To:</span> {{ c['to_name'] }}</div>{% endif %}
+
+          {% if c['preview_text'] is none %}
+            <div class="locked-content" aria-hidden="true">
+              <span class="bar" style="width: 88%;"></span>
+              <span class="bar" style="width: 62%;"></span>
+            </div>
+          {% else %}
+            <div class="card-message{% if not c['to_name'] %} no-to{% endif %}">{{ c['preview_text'] }}</div>
+          {% endif %}
+
+          {% if has_more %}
+            <div class="read-more-badge">Read more &rarr;</div>
+          {% endif %}
+
+          {% if c['from_name'] and (not c['revealed'] or c['total_pages'] <= 1) %}
+            <div class="card-from"><span>From:</span> {{ c['from_name'] }}</div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty">No cards yet. Be the first to design one!</div>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}{{ person['name'] }} &middot; BS ECE 4-4 Wrap{% endblock %}
+{% block content %}
+  <a class="back-link" href="{{ url_for('index') }}">&larr; back to directory</a>
+  <h1 class="person-name">{{ person['name'] }}</h1>
+
+  <div class="panel">
+    <h2>Send a message</h2>
+    <form method="post" action="{{ url_for('send_message', slug=person['slug']) }}">
+      <label for="content">Message</label>
+      <textarea id="content" name="content" required maxlength="2000" placeholder="Type your message..."></textarea>
+
+      <label for="sender_name">Your name (optional)</label>
+      <input type="text" id="sender_name" name="sender_name" maxlength="80" placeholder="Leave blank to stay anonymous">
+
+      <div class="check-row">
+        <input type="checkbox" id="is_anon" name="is_anon" checked>
+        <label for="is_anon" style="margin:0;">Send anonymously</label>
+      </div>
+
+      <button type="submit">Send</button>
+    </form>
+  </div>
+
+  <p class="section-title">Messages ({{ messages|length }})</p>
+
+  {% if not revealed %}
+    <div class="lock-banner">🔒 Messages unlock on {{ reveal_display }}</div>
+  {% endif %}
+
+  {% if messages %}
+    <div class="feed">
+      {% for m in messages %}
+        <div class="msg">
+          <div class="msg-meta">
+            <span class="from">{{ m['sender_name'] if m['sender_name'] else 'Anonymous' }}</span>
+            <span>{{ m['created_at'][:16].replace('T', ' ') }}</span>
+          </div>
+          {% if m['content'] is none %}
+            <div class="locked-content" aria-hidden="true">
+              <span class="bar" style="width: 92%;"></span>
+              <span class="bar" style="width: 68%;"></span>
+              <span class="bar" style="width: 45%;"></span>
+            </div>
+          {% else %}
+            <p>{{ m['content'] }}</p>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty">No messages yet. Be the first.</div>
+  {% endif %}
+{% endblock %}

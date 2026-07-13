@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+{% block title %}Design a card &middot; BS ECE 4-4 Wrap{% endblock %}
+{% block content %}
+  <a class="back-link" href="{{ url_for('index') }}">&larr; back to the wall</a>
+
+  <div class="site-header" style="padding-top:0;">
+    <p class="eyebrow">Card Designer</p>
+    <h1 style="font-size:clamp(26px,6vw,34px);">Write it right on the card</h1>
+    <p>Type directly onto the card below. Press Enter for a new paragraph. If it runs long, another card appears automatically.</p>
+  </div>
+
+  <div class="panel">
+    <h2>Pick a color</h2>
+    <div class="color-swatches" id="colorSwatches"></div>
+    <p class="color-meaning" id="colorMeaning"></p>
+  </div>
+
+  <div class="card-stage" id="stage">
+    <div class="card-preview" id="page-0">
+      <div class="card-page-indicator" id="indicator-0">(1/1)</div>
+      <div class="card-to"><span>To:</span> <input type="text" id="toInput" maxlength="60" placeholder="recipient's name"></div>
+      <div class="card-message" id="msg-0" contenteditable="true" data-placeholder="Write your message here..."></div>
+    </div>
+  </div>
+
+  <div class="card-from" id="fromWrap"><span>From:</span> <input type="text" id="fromInput" maxlength="60" placeholder="anonymous"></div>
+
+  <button type="button" id="postBtn" style="margin-top:20px;">Post card</button>
+
+  {% if allow_hide %}
+  <div class="reveal-modal-overlay" id="revealModal">
+    <div class="reveal-modal-inner">
+      <h3>Show this card now, or wait?</h3>
+      <p class="meta">Pick when this card should appear on the public wall.</p>
+      <div class="reveal-modal-actions">
+        <button type="button" class="btn" id="revealNowBtn">Show it now</button>
+        <button type="button" class="btn secondary" id="revealWaitBtn">Wait for the party</button>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const COLORS = {{ colors|tojson }};
+const ALLOW_HIDE = {{ allow_hide|tojson }};
+let selectedColor = COLORS[0].hex;
+
+const swatchWrap = document.getElementById('colorSwatches');
+const meaningEl = document.getElementById('colorMeaning');
+const stage = document.getElementById('stage');
+const toInput = document.getElementById('toInput');
+const fromInput = document.getElementById('fromInput');
+const fromWrap = document.getElementById('fromWrap');
+const postBtn = document.getElementById('postBtn');
+
+function applyColor() {
+  pages.forEach(p => p.cardEl.style.background = selectedColor);
+}
+
+function renderSwatches() {
+  swatchWrap.innerHTML = '';
+  COLORS.forEach(c => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'swatch' + (c.hex === selectedColor ? ' selected' : '');
+    btn.style.background = c.hex;
+    btn.title = c.name;
+    btn.addEventListener('click', () => {
+      selectedColor = c.hex;
+      renderSwatches();
+      applyColor();
+    });
+    swatchWrap.appendChild(btn);
+  });
+  const current = COLORS.find(c => c.hex === selectedColor);
+  meaningEl.textContent = current.name + ' \u2014 ' + current.meaning;
+}
+
+// ---- dynamic page management (unlimited pages) ----
+let reflowTimer = null;
+
+function handleEnterKey(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    document.execCommand('insertText', false, '\n');
+  }
+}
+
+function makePageEl(index) {
+  const cardEl = document.createElement('div');
+  cardEl.className = 'card-preview';
+  cardEl.style.background = selectedColor;
+
+  const indicatorEl = document.createElement('div');
+  indicatorEl.className = 'card-page-indicator';
+  cardEl.appendChild(indicatorEl);
+
+  const msgEl = document.createElement('div');
+  msgEl.className = 'card-message no-to';
+  msgEl.contentEditable = 'true';
+  msgEl.addEventListener('keydown', handleEnterKey);
+  msgEl.addEventListener('input', scheduleReflow);
+  cardEl.appendChild(msgEl);
+
+  stage.appendChild(cardEl);
+  return { cardEl, msgEl, indicatorEl };
+}
+
+// page 0 already exists in the template
+const page0 = {
+  cardEl: document.getElementById('page-0'),
+  msgEl: document.getElementById('msg-0'),
+  indicatorEl: document.getElementById('indicator-0'),
+};
+page0.msgEl.addEventListener('keydown', handleEnterKey);
+page0.msgEl.addEventListener('input', scheduleReflow);
+
+let pages = [page0];
+
+renderSwatches();
+applyColor();
+page0.cardEl.appendChild(fromWrap);
+
+function overflowing(el) {
+  return el.scrollHeight > el.clientHeight + 1;
+}
+
+function textToTokens(text) {
+  const tokens = [];
+  const parts = text.split('\n');
+  parts.forEach((part, idx) => {
+    part.split(/\s+/).filter(Boolean).forEach(w => tokens.push(w));
+    if (idx < parts.length - 1) tokens.push('\n');
+  });
+  return tokens;
+}
+
+function tokensToText(tokens) {
+  let out = '';
+  for (let i = 0; i < tokens.length; i++) {
+    if (tokens[i] === '\n') {
+      out += '\n';
+    } else {
+      if (out.length > 0 && out[out.length - 1] !== '\n') out += ' ';
+      out += tokens[i];
+    }
+  }
+  return out;
+}
+
+function setCursorToEnd(el) {
+  el.focus();
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  range.collapse(false);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+
+function scheduleReflow() {
+  clearTimeout(reflowTimer);
+  reflowTimer = setTimeout(fullReflow, 220);
+}
+
+function fullReflow() {
+  let allTokens = [];
+  pages.forEach(p => { allTokens = allTokens.concat(textToTokens(p.msgEl.innerText)); });
+
+  let pageIndex = 0;
+  let tokenIndex = 0;
+
+  while (tokenIndex < allTokens.length) {
+    if (pageIndex >= pages.length) pages.push(makePageEl(pageIndex));
+    const msgEl = pages[pageIndex].msgEl;
+    let assigned = [];
+    let i = tokenIndex;
+    while (i < allTokens.length) {
+      const trial = tokensToText(assigned.concat([allTokens[i]]));
+      msgEl.innerText = trial;
+      if (overflowing(msgEl)) break;
+      assigned.push(allTokens[i]);
+      i++;
+    }
+    if (assigned.length === 0 && i < allTokens.length) {
+      assigned.push(allTokens[i]);
+      i++;
+    }
+    msgEl.innerText = tokensToText(assigned);
+    tokenIndex = i;
+    pageIndex++;
+  }
+
+  const neededPages = Math.max(1, pageIndex);
+  while (pages.length > neededPages) {
+    const removed = pages.pop();
+    removed.cardEl.remove();
+  }
+
+  pages.forEach((p, idx) => {
+    p.indicatorEl.textContent = `(${idx + 1}/${pages.length})`;
+  });
+
+  // From always lives on the last page
+  pages[pages.length - 1].cardEl.appendChild(fromWrap);
+
+  setCursorToEnd(pages[pages.length - 1].msgEl);
+}
+
+function askRevealChoice() {
+  if (!ALLOW_HIDE) return Promise.resolve(true);
+  const modal = document.getElementById('revealModal');
+  const nowBtn = document.getElementById('revealNowBtn');
+  const waitBtn = document.getElementById('revealWaitBtn');
+  modal.classList.add('open');
+  return new Promise((resolve) => {
+    function cleanup(result) {
+      modal.classList.remove('open');
+      nowBtn.removeEventListener('click', onNow);
+      waitBtn.removeEventListener('click', onWait);
+      resolve(result);
+    }
+    function onNow() { cleanup(true); }
+    function onWait() { cleanup(false); }
+    nowBtn.addEventListener('click', onNow);
+    waitBtn.addEventListener('click', onWait);
+  });
+}
+
+postBtn.addEventListener('click', async () => {
+  const pageTexts = pages.map(p => p.msgEl.innerText.trim()).filter(Boolean);
+  if (pageTexts.length === 0) {
+    alert('Write a message first.');
+    return;
+  }
+
+  const revealNow = await askRevealChoice();
+
+  postBtn.disabled = true;
+  postBtn.textContent = 'Posting...';
+  try {
+    const res = await fetch('{{ url_for("card_create") }}', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to_name: toInput.value.trim(),
+        from_name: fromInput.value.trim(),
+        color: selectedColor,
+        pages: pageTexts,
+        show_now: revealNow,
+      }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      window.location.href = '{{ url_for("index") }}';
+    } else {
+      alert(data.error || 'Something went wrong.');
+      postBtn.disabled = false;
+      postBtn.textContent = 'Post card';
+    }
+  } catch (e) {
+    alert('Could not post the card. Check your connection and try again.');
+    postBtn.disabled = false;
+    postBtn.textContent = 'Post card';
+  }
+});
+</script>
+{% endblock %}

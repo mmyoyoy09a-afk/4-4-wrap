@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}BS ECE 4-4 Wrap{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="ocean-banner" aria-hidden="true">
+    <svg class="wave wave-back" viewBox="0 0 2400 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path fill="#bfe9e4" d="M0,60 C100,100 200,20 300,60 C400,100 500,20 600,60 C700,100 800,20 900,60 C1000,100 1100,20 1200,60 L1200,120 L0,120 Z
+        M1200,60 C1300,100 1400,20 1500,60 C1600,100 1700,20 1800,60 C1900,100 2000,20 2100,60 C2200,100 2300,20 2400,60 L2400,120 L1200,120 Z"/>
+    </svg>
+    <svg class="wave wave-mid" viewBox="0 0 2400 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path fill="#6fd0d6" d="M0,75 C120,35 240,105 360,75 C480,35 600,105 720,75 C840,35 960,105 1080,75 C1200,35 1200,35 1200,75 L1200,120 L0,120 Z
+        M1200,75 C1320,35 1440,105 1560,75 C1680,35 1800,105 1920,75 C2040,35 2160,105 2280,75 C2400,35 2400,35 2400,75 L2400,120 L1200,120 Z"/>
+    </svg>
+    <svg class="wave wave-front" viewBox="0 0 2400 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path fill="#1487a8" d="M0,90 C150,60 300,110 450,90 C600,60 750,110 900,90 C1050,60 1200,110 1200,90 L1200,120 L0,120 Z
+        M1200,90 C1350,60 1500,110 1650,90 C1800,60 1950,110 2100,90 C2250,60 2400,110 2400,90 L2400,120 L1200,120 Z"/>
+    </svg>
+    <svg class="boat boat-1" viewBox="0 0 24 32" xmlns="http://www.w3.org/2000/svg">
+      <path fill="#ffffff" d="M3 24 L21 24 L17 29 L7 29 Z"/>
+      <rect fill="#ffffff" x="11" y="3" width="2" height="21"/>
+      <path fill="#ffffff" d="M11 5 L11 22 L4 22 Z"/>
+    </svg>
+    <svg class="boat boat-2" viewBox="0 0 24 32" xmlns="http://www.w3.org/2000/svg">
+      <path fill="#ffffff" d="M3 24 L21 24 L17 29 L7 29 Z"/>
+      <rect fill="#ffffff" x="11" y="3" width="2" height="21"/>
+      <path fill="#ffffff" d="M11 5 L11 22 L4 22 Z"/>
+    </svg>
+  </div>
+  <div class="wrap">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+
+    <footer>BS ECE 4-4 &middot; year-end wrap &middot; smooth sailing 🌊</footer>
+  </div>
+  <script src="{{ url_for('static', filename='card-modal.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
