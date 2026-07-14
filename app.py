@@ -357,11 +357,11 @@ CREATE TABLE IF NOT EXISTS settings (
 """
 
 CARD_COLORS = [
-    {"hex": "#c9e3ee", "name": "Soft Blue", "meaning": "Calm, peace, and serenity"},
-    {"hex": "#f1d8cb", "name": "Warm Peach", "meaning": "Gratitude, warmth, and comfort"},
-    {"hex": "#d2e5cc", "name": "Mint Green", "meaning": "Fresh beginnings, growth, and harmony"},
-    {"hex": "#e9d5e7", "name": "Pale Lavender", "meaning": "Creativity, elegance, and deep appreciation"},
-    {"hex": "#ffffff", "name": "Pure White", "meaning": "Simplicity, clarity, and timelessness"},
+    {"hex": "#c9e3ee", "name": "Soft Blue", "meaning": "Camaraderie and Support"},
+    {"hex": "#f1d8cb", "name": "Warm Peach", "meaning": "Love and Deep Platonic Bonds"},
+    {"hex": "#d2e5cc", "name": "Mint Green", "meaning": "Grace and Gentle Reflection"},
+    {"hex": "#e9d5e7", "name": "Pale Lavender", "meaning": "Gratitude and Deep Appreciation"},
+    {"hex": "#ffffff", "name": "Pure White", "meaning": "Simplicity and Clarity"},
 ]
 CARD_COLOR_NAMES = {c["hex"]: c["name"] for c in CARD_COLORS}
 
