@@ -25,20 +25,21 @@
 
   <div class="card-from" id="fromWrap"><span>From:</span> <input type="text" id="fromInput" maxlength="60" placeholder="anonymous"></div>
 
-  <div style="text-align:center; margin-top:40px;">
-    <button class="btn" id="postBtn" type="button">Post card</button>
-  </div>
+  <button type="button" id="postBtn" style="margin-top:20px;">Post card</button>
 
-  <div class="modal-overlay" id="revealModal">
-    <div class="modal-box">
+  {% if allow_hide %}
+  <div class="reveal-modal-overlay" id="revealModal">
+    <div class="reveal-modal-inner">
       <h3>Post Visibility</h3>
-      <p>Do you want your card to be readable immediately, or stay hidden until the official countdown reveals everyone's messages?</p>
-      <div class="modal-buttons">
-        <button class="btn btn-secondary" id="revealWaitBtn" type="button">Keep Hidden</button>
-        <button class="btn" id="revealNowBtn" type="button">Show Immediately</button>
+      <p class="meta">Do you want your card to be readable immediately, or stay hidden until the official countdown reveals everyone's messages?</p>
+      <div class="reveal-modal-actions">
+        <button type="button" class="btn secondary" id="revealWaitBtn">Keep Hidden</button>
+        <button type="button" class="btn" id="revealNowBtn">Show Immediately</button>
       </div>
     </div>
   </div>
+  {% endif %}
+
 {% endblock %}
 
 {% block scripts %}
@@ -78,7 +79,9 @@ function renderSwatches() {
   meaningEl.textContent = current.name + ' \u2014 ' + current.meaning;
 }
 
-// ---- Clean Entering Handling ----
+// ---- Dynamic page management (Unlimited Pages) ----
+let reflowTimer = null;
+
 function handleEnterKey(e) {
   if (e.key === 'Enter') {
     e.preventDefault();
@@ -155,12 +158,10 @@ function setCursorToEnd(el) {
 }
 
 // ---- Updated cursor-safe dynamic page management ----
-let reflowTimer = null;
-
 function scheduleReflow(e) {
   clearTimeout(reflowTimer);
   
-  // If typing spaces or working in the middle, give the user breathing room before processing
+  // Prevent immediate reflow when mid-sentence or hitting spacing keys
   if (e && e.inputType === 'insertText' && e.data === ' ') {
     return; 
   }
@@ -172,7 +173,7 @@ function fullReflow() {
   const activeEl = document.activeElement;
   let savedSelection = null;
 
-  // 1. Snapshot cursor indexing coordinates relative to the text nodes
+  // Snapshot position coords securely
   if (activeEl && activeEl.classList.contains('card-message')) {
     const sel = window.getSelection();
     if (sel.rangeCount > 0) {
@@ -185,7 +186,6 @@ function fullReflow() {
     }
   }
 
-  // Optimize: skip structural updates completely if text comfortably fits single page layout
   let needsReflow = pages.some(p => overflowing(p.msgEl)) || pages.length > 1;
   if (!needsReflow) {
     pages[0].indicatorEl.textContent = `(1/1)`;
@@ -231,7 +231,7 @@ function fullReflow() {
 
   pages[pages.length - 1].cardEl.appendChild(fromWrap);
 
-  // 2. Safe Cursor Restoration
+  // Restore active focus selection accurately
   if (savedSelection && document.body.contains(savedSelection.node)) {
     try {
       savedSelection.activeEl.focus();
@@ -249,13 +249,16 @@ function fullReflow() {
   }
 }
 
-// ---- Post Actions and Submit Operations ----
+// ---- Post Handling & Reveal Modal Actions ----
 function askRevealChoice() {
   if (!ALLOW_HIDE) return Promise.resolve(true);
   const modal = document.getElementById('revealModal');
   const nowBtn = document.getElementById('revealNowBtn');
   const waitBtn = document.getElementById('revealWaitBtn');
+  
+  // Show modal layout via CSS rule matching your stylesheet
   modal.classList.add('open');
+  
   return new Promise((resolve) => {
     function cleanup(result) {
       modal.classList.remove('open');
@@ -265,6 +268,7 @@ function askRevealChoice() {
     }
     function onNow() { cleanup(true); }
     function onWait() { cleanup(false); }
+    
     nowBtn.addEventListener('click', onNow);
     waitBtn.addEventListener('click', onWait);
   });
@@ -277,7 +281,6 @@ postBtn.addEventListener('click', async () => {
     return;
   }
 
-  // --- RESTORED MODAL UI CHECK ---
   const revealNow = await askRevealChoice();
 
   postBtn.disabled = true;
@@ -309,7 +312,7 @@ postBtn.addEventListener('click', async () => {
   }
 });
 
-// Run UI Setup after everything initializes safely
+// Run Setup hooks cleanly
 renderSwatches();
 applyColor();
 page0.cardEl.appendChild(fromWrap);
