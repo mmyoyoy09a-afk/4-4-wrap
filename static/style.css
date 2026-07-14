@@ -44,7 +44,6 @@ a { color: inherit; }
 }
 
 /* ---------------- ocean banner (signature element) ---------------- */
-
 .ocean-banner {
   position: relative;
   width: 100%;
@@ -59,12 +58,20 @@ a { color: inherit; }
   left: 0;
   width: 200%;
   height: 100%;
-  animation: drift 18s linear infinite;
 }
-.wave-back { animation-duration: 34s; opacity: 0.55; }
-.wave-mid { animation-duration: 18s; opacity: 0.8; }
-.wave-front { animation-duration: 9s; opacity: 1; }
 
+.wave-back {
+  animation: drift 34s linear infinite;
+  opacity: 0.55;
+}
+.wave-mid {
+  animation: drift 18s linear infinite;
+  opacity: 0.8;
+}
+.wave-front {
+  animation: drift 9s linear infinite;
+  opacity: 1;
+}
 @keyframes drift {
   from { transform: translateX(-50%); }
   to { transform: translateX(0); }
@@ -85,8 +92,8 @@ a { color: inherit; }
   50% { transform: translateY(-6px) rotate(3deg); }
 }
 @keyframes sail {
-  from { left: 108%; }
-  to { left: -8%; }
+  from { left: -114%;}
+  to { left: 114; }
 }
 
 @media (prefers-reduced-motion: reduce) {
