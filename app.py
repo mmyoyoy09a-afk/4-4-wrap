@@ -362,7 +362,7 @@ CARD_COLORS = [
     {"hex": "#d7ffce", "name": "Mint Green", "meaning": "Grace and Gentle Reflection"},
     {"hex": "#e1faff", "name": "Soft Blue", "meaning": "Prosper and Godspeed"},
     {"hex": "#e9d5e7", "name": "Pale Lavender", "meaning": "Gratitude and Appreciation"},
-    {"hex": "#f8f7ff", "name": "Pure White", "meaning": "Leave it Blank"}
+    {"hex": "#f8f7ff", "name": "Pure White", "meaning": "Clarity"}
 ]
 CARD_COLOR_NAMES = {c["hex"]: c["name"] for c in CARD_COLORS}
 
